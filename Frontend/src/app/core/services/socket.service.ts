@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { io, Socket } from 'socket.io-client';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class SocketService {
@@ -8,15 +9,15 @@ export class SocketService {
 
   constructor() {
     console.log('🔌 Inicializando Socket.io...');
-    console.log('📍 Conectando a: http://localhost:4000');
+    console.log('📍 Conectando a:', environment.apiUrl);
     
-    this.socket = io('http://localhost:4000', {
+    this.socket = io(environment.apiUrl, {
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
       reconnectionAttempts: 5,
-      transports: ['websocket', 'polling'],  // ✅ Agregar fallback a polling
-      forceNew: true                         // ✅ Forzar nueva conexión
+      transports: ['websocket', 'polling'],
+      forceNew: true
     });
 
     // Eventos de conexión

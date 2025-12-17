@@ -42,7 +42,11 @@ dotenv.config();
 // APP SETUP
 // ======================================
 const app = express();
-app.use(cors());
+
+// CORS - Permitir peticiones desde cualquier origen (para pruebas)
+// En producción, puedes restringir a orígenes específicos
+app.use(cors({ origin: '*' }));
+
 app.use(helmet());
 app.use(express.json());
 
@@ -51,7 +55,9 @@ const PORT = process.env.PORT || 4000;
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: "*", // Permite conexiones desde cualquier origen (ajusta en producción)
+    origin: '*' // Permitir conexiones WebSocket desde cualquier origen
+  }
+    credentials: true
   }
 });
 // ======================================

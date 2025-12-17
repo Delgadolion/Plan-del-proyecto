@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
 
 export interface Achievement {
   id: string;
@@ -34,7 +35,7 @@ export interface AchievementStats {
 })
 export class AchievementService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:4000/api/achievements';
+  private apiUrl = environment.apiUrl + '/api/achievements';
 
   /**
    * Obtener todos los logros disponibles

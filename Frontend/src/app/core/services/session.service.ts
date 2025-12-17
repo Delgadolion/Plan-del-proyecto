@@ -2,13 +2,14 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, Subject, timeout } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
 import { Session } from '../models/session.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SessionService {
-  private apiUrl = 'http://localhost:4000/api/sessions';
+  private apiUrl = environment.apiUrl + '/api/sessions';
   
   // Subject para notificar cuando se crea una nueva sesión
   private sessionCreated$ = new Subject<Session>();
