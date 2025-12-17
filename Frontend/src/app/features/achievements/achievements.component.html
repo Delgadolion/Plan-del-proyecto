@@ -1,0 +1,170 @@
+<div class="min-h-screen bg-background">
+  <app-header></app-header>
+
+  <main class="container px-4 py-8 max-w-6xl mx-auto">
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-foreground mb-2">Mis Logros</h1>
+      <p class="text-muted-foreground">Desbloquea logros mientras estudias y alcanzas tus metas</p>
+    </div>
+
+    <!-- Error Message -->
+    <div *ngIf="error" class="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive">
+      <p class="font-medium">Error al cargar logros</p>
+      <p class="text-sm">{{ error }}</p>
+      <button 
+        (click)="retryLoadAchievements()" 
+        class="mt-2 px-3 py-1 text-sm bg-destructive text-destructive-foreground rounded hover:bg-destructive/90">
+        Reintentar
+      </button>
+    </div>
+
+    <!-- Stats Card -->
+    <div *ngIf="achievements.length > 0 && !loading" class="bg-card border border-border rounded-lg p-8 mb-8">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-muted-foreground mb-2">Logros Desbloqueados</p>
+          <p class="text-4xl font-bold text-foreground">{{ getUnlockedCount() }} / {{ achievements.length }}</p>
+          <div class="mt-4 flex gap-4">
+            <div>
+              <p class="text-xs text-muted-foreground">Total</p>
+              <p class="text-xl font-semibold text-foreground">{{ achievementStats.total }}</p>
+            </div>
+            <div>
+              <p class="text-xs text-muted-foreground">Puntos</p>
+              <p class="text-xl font-semibold text-primary">{{ achievementStats.unlockedPoints }} / {{ achievementStats.totalPoints }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="relative w-40 h-40">
+          <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="45" fill="none" stroke="#e5e7eb" stroke-width="8" />
+            <circle
+              cx="50"
+              cy="50"
+              r="45"
+              fill="none"
+              stroke="#3b82f6"
+              stroke-width="8"
+              [attr.stroke-dasharray]="calculateStrokeDasharray()"
+              stroke-linecap="round"
+            />
+          </svg>
+          <div class="absolute inset-0 flex items-center justify-center">
+            <div class="text-center">
+              <div class="text-3xl font-bold text-foreground">{{ getUnlockedPercentage() }}%</div>
+              <div class="text-xs text-muted-foreground">Completado</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="mb-8 space-y-4">
+      <!-- Estado Filters -->
+      <div class="flex gap-2 flex-wrap">
+        <button
+          (click)="filterStatus = 'all'"
+          [class.bg-primary]="filterStatus === 'all'"
+          [class.text-primary-foreground]="filterStatus === 'all'"
+          [class.bg-muted]="filterStatus !== 'all'"
+          [class.text-foreground]="filterStatus !== 'all'"
+          class="px-4 py-2 rounded-full font-medium text-sm transition-colors">
+          Todos
+        </button>
+        <button
+          (click)="filterStatus = 'unlocked'"
+          [class.bg-green-600]="filterStatus === 'unlocked'"
+          [class.text-white]="filterStatus === 'unlocked'"
+          [class.bg-muted]="filterStatus !== 'unlocked'"
+          [class.text-foreground]="filterStatus !== 'unlocked'"
+          class="px-4 py-2 rounded-full font-medium text-sm transition-colors">
+          Desbloqueados
+        </button>
+        <button
+          (click)="filterStatus = 'locked'"
+          [class.bg-orange-600]="filterStatus === 'locked'"
+          [class.text-white]="filterStatus === 'locked'"
+          [class.bg-muted]="filterStatus !== 'locked'"
+          [class.text-foreground]="filterStatus !== 'locked'"
+          class="px-4 py-2 rounded-full font-medium text-sm transition-colors">
+          Bloqueados
+        </button>
+      </div>
+
+      <!-- Category Filters -->
+      <div class="flex gap-2 flex-wrap">
+        <button
+          *ngFor="let category of categories"
+          (click)="filterCategory = category"
+          [class.bg-primary]="filterCategory === category"
+          [class.text-primary-foreground]="filterCategory === category"
+          [class.bg-muted]="filterCategory !== category"
+          [class.text-foreground]="filterCategory !== category"
+          class="px-4 py-2 rounded-full font-medium text-sm transition-colors capitalize">
+          {{ category === 'all' ? 'Todas las Categorías' : getCategoryLabel(category) }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Achievements Grid -->
+    <div *ngIf="!loading && getFilteredAchievements().length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div *ngFor="let achievement of getFilteredAchievements()" 
+        [ngClass]="achievement.unlocked ? 'opacity-100' : 'opacity-75'"
+        class="border border-border rounded-lg p-6 hover:shadow-lg transition-all">
+        
+        <div class="flex items-start justify-between mb-4">
+          <div class="text-5xl">{{ achievement.icon }}</div>
+          <span *ngIf="achievement.unlocked" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-700">
+            ✓ Desbloqueado
+          </span>
+          <span *ngIf="!achievement.unlocked" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-500/20 text-gray-700">
+            🔒 Bloqueado
+          </span>
+        </div>
+
+        <h3 class="text-lg font-semibold text-foreground mb-2">{{ achievement.name }}</h3>
+        <p class="text-sm text-muted-foreground mb-4">{{ achievement.description }}</p>
+
+        <div class="flex items-center justify-between">
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-secondary/20 text-secondary-foreground capitalize">
+            {{ getCategoryLabel(achievement.category) }}
+          </span>
+          <span class="text-lg font-bold text-primary">+{{ achievement.points }} pts</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div *ngFor="let i of [1,2,3,4,5,6]" class="border border-border rounded-lg p-6 animate-pulse">
+        <div class="h-12 w-12 bg-muted rounded mb-4"></div>
+        <div class="h-6 w-32 bg-muted rounded mb-3"></div>
+        <div class="h-4 w-full bg-muted rounded mb-4"></div>
+        <div class="h-10 w-full bg-muted rounded"></div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!loading && getFilteredAchievements().length === 0 && achievements.length > 0" class="text-center py-12">
+      <p class="text-lg text-muted-foreground mb-4">No hay logros que cumplan los criterios de filtro</p>
+      <button 
+        (click)="filterStatus = 'all'; filterCategory = 'all'"
+        class="text-primary hover:text-primary/80 font-medium">
+        Limpiar filtros
+      </button>
+    </div>
+
+    <!-- No Achievements Yet -->
+    <div *ngIf="!loading && achievements.length === 0" class="text-center py-12 border border-border/50 rounded-lg">
+      <p class="text-lg text-muted-foreground">Aún no tienes logros desbloqueados</p>
+      <p class="text-sm text-muted-foreground mt-1">¡Completa sesiones de estudio para desbloquearlos!</p>
+      <a href="/sessions" class="inline-block mt-4 px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 font-medium">
+        Ir a Sesiones
+      </a>
+    </div>
+  </main>
+
+  <app-footer></app-footer>
+</div>

@@ -1,0 +1,181 @@
+<div class="min-h-screen flex flex-col bg-background">
+  <app-header></app-header>
+
+  <main class="flex-1 container px-4 py-8 max-w-7xl mx-auto">
+    <!-- Sección de estadísticas -->
+    <div class="mb-12">
+      <h1 class="text-3xl font-bold text-foreground mb-2">Bienvenido, {{ currentUser?.name || 'Estudiante' }}</h1>
+      <p class="text-muted-foreground">Panel de control de tus sesiones de estudio</p>
+    </div>
+
+    <!-- Tarjetas de estadísticas -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
+      <div *ngFor="let stat of stats" [ngClass]="stat.color" class="rounded-lg p-6 border border-border/50">
+        <div class="flex items-start justify-between">
+          <div>
+            <p class="text-sm text-muted-foreground mb-1">{{ stat.label }}</p>
+            <p class="text-3xl font-bold text-foreground">{{ stat.value }}</p>
+          </div>
+          <span class="text-2xl">{{ stat.icon }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error message -->
+    <div *ngIf="error" class="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+      <p class="text-sm text-destructive">{{ error }}</p>
+      <button (click)="retryLoadDashboard()" class="mt-2 text-sm text-destructive hover:text-destructive/80 underline">
+        Reintentar
+      </button>
+    </div>
+
+    <!-- Herramientas poderosas -->
+    <section class="mb-12">
+      <div class="mb-8">
+        <h2 class="text-2xl font-bold text-foreground mb-2">Herramientas poderosas para tu éxito</h2>
+        <p class="text-muted-foreground">Maximiza tu productividad con estas funcionalidades</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Herramienta 1: Técnica Pomodoro -->
+        <a href="/sessions/create" class="group border border-border rounded-lg p-6 hover:border-primary/50 hover:shadow-lg transition-all">
+          <div class="flex items-center justify-center w-12 h-12 rounded-lg bg-primary/10 mb-4 group-hover:bg-primary/20 transition-colors">
+            <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 2m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <h3 class="font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">Técnica Pomodoro</h3>
+          <p class="text-sm text-muted-foreground">Gestiona tu tiempo con intervalos de concentración y descanso</p>
+        </a>
+
+        <!-- Herramienta 2: Sesiones Colaborativas -->
+        <a href="/sessions" class="group border border-border rounded-lg p-6 hover:border-primary/50 hover:shadow-lg transition-all">
+          <div class="flex items-center justify-center w-12 h-12 rounded-lg bg-secondary/10 mb-4 group-hover:bg-secondary/20 transition-colors">
+            <svg class="w-6 h-6 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.856-1.487M15 10a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+          </div>
+          <h3 class="font-semibold text-foreground mb-2 group-hover:text-secondary transition-colors">Sesiones Colaborativas</h3>
+          <p class="text-sm text-muted-foreground">Estudia con amigos y motívate mutuamente</p>
+        </a>
+
+        <!-- Herramienta 3: Logros y Estadísticas -->
+        <a href="/achievements" class="group border border-border rounded-lg p-6 hover:border-primary/50 hover:shadow-lg transition-all">
+          <div class="flex items-center justify-center w-12 h-12 rounded-lg bg-amber-500/10 mb-4 group-hover:bg-amber-500/20 transition-colors">
+            <svg class="w-6 h-6 text-amber-500" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+            </svg>
+          </div>
+          <h3 class="font-semibold text-foreground mb-2 group-hover:text-amber-500 transition-colors">Logros y Estadísticas</h3>
+          <p class="text-sm text-muted-foreground">Desbloquea logros y trackea tu progreso</p>
+        </a>
+
+        <!-- Herramienta 4: Perfil y Preferencias -->
+        <a href="/profile" class="group border border-border rounded-lg p-6 hover:border-primary/50 hover:shadow-lg transition-all">
+          <div class="flex items-center justify-center w-12 h-12 rounded-lg bg-purple-500/10 mb-4 group-hover:bg-purple-500/20 transition-colors">
+            <svg class="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <h3 class="font-semibold text-foreground mb-2 group-hover:text-purple-500 transition-colors">Perfil y Preferencias</h3>
+          <p class="text-sm text-muted-foreground">Personaliza tu experiencia de estudio</p>
+        </a>
+      </div>
+    </section>
+
+    <!-- Sesiones activas -->
+    <section>
+      <div class="mb-8 flex items-center justify-between">
+        <div>
+          <h2 class="text-2xl font-bold text-foreground mb-1">Sesiones Activas</h2>
+          <p class="text-muted-foreground">Únete a una sesión en curso o crea la tuya</p>
+        </div>
+        <a 
+          href="/sessions" 
+          class="hidden md:flex gap-2 items-center text-primary hover:text-primary/80 font-medium text-sm">
+          Ver Todas
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+          </svg>
+        </a>
+      </div>
+
+      <!-- Sesiones grid -->
+      <div *ngIf="!isLoading && sessions.length > 0" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div *ngFor="let session of sessions" class="border border-border rounded-lg p-6 hover:shadow-lg transition-shadow">
+          <!-- Etiqueta de asunto -->
+          <div class="flex items-start justify-between mb-4">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-secondary/20 text-secondary-foreground">
+              {{ session.subject || session.tema || 'General' }}
+            </span>
+            <div class="flex items-center gap-1 text-xs text-muted-foreground">
+              <span class="relative flex h-2 w-2">
+                <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-secondary opacity-75"></span>
+                <span class="relative inline-flex h-2 w-2 rounded-full bg-secondary"></span>
+              </span>
+              En vivo
+            </div>
+          </div>
+
+          <!-- Título de sesión -->
+          <h3 class="text-lg font-semibold text-foreground mb-3">
+            {{ session.title || session.titulo }}
+          </h3>
+
+          <!-- Información del creador -->
+          <div class="flex items-center gap-2 mb-4">
+            <div class="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
+              <span class="text-xs font-bold text-primary">
+                {{ (session.creador?.name || 'A').charAt(0).toUpperCase() }}
+              </span>
+            </div>
+            <span class="text-sm text-muted-foreground">
+              {{ session.creador?.name || 'Instructor' }}
+            </span>
+          </div>
+
+          <!-- Estadísticas de sesión -->
+          <div class="flex items-center justify-between mb-4 text-sm text-muted-foreground">
+            <div class="flex items-center gap-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.856-1.487M15 10a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              </svg>
+              <span>{{ session.participants || 0 }}/{{ session.maxParticipantes || 12 }}</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 2m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <span>{{ session.duration || '30:00' }}</span>
+            </div>
+          </div>
+
+          <!-- Botón de acción -->
+          <button 
+            class="w-full px-4 py-2 border border-border rounded-lg text-foreground hover:bg-muted transition-colors font-medium text-sm">
+            Unirse a Sesión
+          </button>
+        </div>
+      </div>
+
+      <!-- Loading state -->
+      <div *ngIf="isLoading" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div *ngFor="let i of [1,2,3]" class="border border-border rounded-lg p-6 animate-pulse">
+          <div class="h-8 w-24 bg-muted rounded mb-4"></div>
+          <div class="h-6 w-32 bg-muted rounded mb-3"></div>
+          <div class="h-10 w-full bg-muted rounded"></div>
+        </div>
+      </div>
+
+      <!-- Empty state -->
+      <div *ngIf="!isLoading && sessions.length === 0" class="text-center py-12 border border-border/50 rounded-lg">
+        <p class="text-muted-foreground mb-4">No hay sesiones activas en este momento</p>
+        <a href="/sessions/create" class="inline-block px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 font-medium text-sm">
+          Crear nueva sesión
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <app-footer></app-footer>
+</div>

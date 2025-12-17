@@ -1,0 +1,185 @@
+<div class="min-h-screen bg-background flex flex-col">
+  <app-header></app-header>
+
+  <main class="flex-1 container px-4 py-8 max-w-6xl mx-auto">
+    <!-- Profile Header Section -->
+    <div class="relative mb-12">
+      <!-- Background banner -->
+      <div class="h-48 w-full rounded-lg bg-gradient-to-r from-primary via-secondary to-accent"></div>
+
+      <!-- Profile info with avatar -->
+      <div class="absolute -bottom-16 left-8 flex items-end gap-6">
+        <!-- Avatar con botón de cámara -->
+        <div class="relative">
+          <div class="h-32 w-32 rounded-full border-4 border-background overflow-hidden bg-muted flex items-center justify-center">
+            <img 
+              *ngIf="currentUser && currentUser.fotoPerfil" 
+              [src]="currentUser.fotoPerfil" 
+              alt="Avatar"
+              class="w-full h-full object-cover">
+            <span *ngIf="!currentUser || !currentUser.fotoPerfil" class="text-4xl font-bold text-primary">
+              {{ (currentUser?.name || 'A').charAt(0).toUpperCase() }}
+            </span>
+          </div>
+          <label class="absolute bottom-2 right-2 h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+            <input type="file" accept="image/*" (change)="uploadProfilePicture($event)" class="hidden">
+          </label>
+        </div>
+
+        <!-- User info -->
+        <div class="pb-4">
+          <div class="flex items-center gap-3 mb-1">
+            <h1 class="text-2xl font-bold text-foreground">{{ currentUser?.name || 'Usuario' }}</h1>
+          </div>
+          <p class="text-muted-foreground">@{{ currentUser?.nombre || currentUser?.name || 'usuario' }}</p>
+        </div>
+      </div>
+
+      <!-- Edit button -->
+      <div class="absolute top-4 right-4">
+        <button 
+          (click)="openEditDialog()"
+          class="flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/90 transition-colors font-medium text-sm">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+          </svg>
+          Editar Perfil
+        </button>
+      </div>
+    </div>
+
+    <!-- Bio section -->
+    <div class="mt-20 pt-6 border-t border-border">
+      <p class="text-muted-foreground max-w-2xl">
+        {{ currentUser?.bio || 'Aún no has añadido una biografía' }}
+      </p>
+    </div>
+
+    <!-- Statistics grid -->
+    <div class="mt-8 grid gap-6 lg:grid-cols-3">
+      <div class="lg:col-span-2 space-y-6">
+        <!-- Stats cards -->
+        <div class="grid grid-cols-3 gap-4">
+          <div *ngFor="let stat of statistics" [ngClass]="stat.color" class="rounded-lg p-6 border border-border/50">
+            <div class="flex items-start justify-between">
+              <div>
+                <p class="text-sm text-muted-foreground mb-1">{{ stat.label }}</p>
+                <p class="text-3xl font-bold text-foreground">{{ stat.value }}</p>
+              </div>
+              <span class="text-2xl">{{ stat.icon }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Study Progress -->
+        <div class="border border-border rounded-lg p-6">
+          <h3 class="text-lg font-semibold text-foreground mb-4">Progreso de Estudio</h3>
+          <div class="space-y-4">
+            <div *ngFor="let item of progressItems">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-sm font-medium text-foreground">{{ item.label }}</span>
+                <span class="text-sm font-semibold text-foreground">{{ item.percentage }}%</span>
+              </div>
+              <div class="w-full h-2 bg-muted rounded-full overflow-hidden">
+                <div 
+                  [ngClass]="item.color"
+                  [style.width.%]="item.percentage"
+                  class="h-full transition-all duration-300">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Featured Achievements -->
+      <div class="space-y-6">
+        <div class="border border-border rounded-lg p-6">
+          <h3 class="text-lg font-semibold text-foreground mb-4">Logros Destacados</h3>
+          <div class="space-y-3">
+            <div *ngFor="let achievement of featuredAchievements" class="text-center">
+              <div class="text-4xl mb-2">{{ achievement.icon }}</div>
+              <p class="text-sm font-medium text-foreground">{{ achievement.name }}</p>
+              <p class="text-xs text-muted-foreground">+{{ achievement.points }} pts</p>
+            </div>
+            <div *ngIf="featuredAchievements.length === 0" class="text-center py-4">
+              <p class="text-sm text-muted-foreground">Desbloquea logros estudiando</p>
+            </div>
+          </div>
+          <a href="/achievements" class="block mt-4 text-center text-sm text-primary hover:text-primary/80 font-medium">
+            Ver todos los logros
+          </a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Edit Profile Modal -->
+  <div *ngIf="isEditOpen" class="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+    <div class="bg-background border border-border rounded-lg shadow-lg max-w-md w-full">
+      <!-- Modal Header -->
+      <div class="border-b border-border p-6">
+        <h2 class="text-lg font-semibold text-foreground">Editar Perfil</h2>
+        <p class="text-sm text-muted-foreground">Actualiza tu información personal</p>
+      </div>
+
+      <!-- Modal Body -->
+      <form [formGroup]="editForm" class="p-6 space-y-4">
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-foreground">Nombre completo</label>
+          <input 
+            formControlName="name"
+            type="text"
+            class="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+            placeholder="Tu nombre">
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-foreground">Nombre de usuario</label>
+          <input 
+            formControlName="username"
+            type="text"
+            class="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+            placeholder="Tu nombre de usuario">
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-foreground">Biografía</label>
+          <textarea 
+            formControlName="bio"
+            rows="4"
+            class="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
+            placeholder="Cuéntanos sobre ti">
+          </textarea>
+        </div>
+
+        <!-- Save message -->
+        <div *ngIf="saveMessage" [ngClass]="saveMessage.includes('✅') ? 'bg-green-500/10 text-green-700' : 'bg-red-500/10 text-red-700'" class="p-3 rounded text-sm">
+          {{ saveMessage }}
+        </div>
+      </form>
+
+      <!-- Modal Footer -->
+      <div class="border-t border-border p-6 flex gap-3 justify-end">
+        <button 
+          (click)="closeEditDialog()"
+          [disabled]="isSaving"
+          class="px-4 py-2 border border-border rounded-lg text-foreground hover:bg-muted transition-colors disabled:opacity-50">
+          Cancelar
+        </button>
+        <button 
+          (click)="saveProfile()"
+          [disabled]="isSaving || !editForm.valid"
+          class="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 font-medium">
+          {{ isSaving ? 'Guardando...' : 'Guardar Cambios' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <app-footer></app-footer>
+</div>

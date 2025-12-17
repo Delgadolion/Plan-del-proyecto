@@ -1,0 +1,126 @@
+<div class="min-h-screen bg-background">
+  <main class="container px-4 py-8 max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="flex justify-between items-center">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900 mb-2">Sesiones de Estudio</h1>
+          <p class="text-gray-600">Únete a sesiones o crea la tuya propia</p>
+        </div>
+        <button
+          (click)="goToCreate()"
+          class="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-md transition-colors"
+        >
+          + Nueva Sesión
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="loading" class="text-center py-12">
+      <p class="text-gray-600">Cargando sesiones...</p>
+    </div>
+
+    <!-- Error -->
+    <div
+      *ngIf="error"
+      class="mb-4 p-4 bg-red-50 border border-red-200 text-red-600 rounded-md"
+    >
+      {{ error }}
+    </div>
+
+    <!-- Sessions Grid -->
+    <div
+      *ngIf="!loading && sessions.length > 0"
+      class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+    >
+      <div
+        *ngFor="let session of sessions"
+        class="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-shadow"
+      >
+        <!-- Badge -->
+        <div class="relative h-32 bg-gradient-to-br from-blue-100 to-blue-100 flex items-center justify-center">
+          <span
+            [ngClass]="{
+              'bg-green-500': session.status === 'active',
+              'bg-orange-500': session.status === 'upcoming',
+              'bg-gray-500': session.status === 'completed'
+            }"
+            class="absolute top-3 right-3 text-white text-xs font-bold px-3 py-1 rounded-full"
+          >
+            {{ session.status === 'active' ? 'EN VIVO' : session.status === 'upcoming' ? 'PRÓXIMAMENTE' : 'FINALIZADO' }}
+          </span>
+          <div class="text-center">
+            <p class="text-gray-600 text-sm">{{ session.subject }}</p>
+          </div>
+        </div>
+
+        <!-- Content -->
+        <div class="p-4">
+          <h3 class="text-lg font-bold text-gray-900 mb-2">{{ session.title }}</h3>
+          <p class="text-sm text-gray-600 mb-4 line-clamp-2">{{ session.description }}</p>
+
+          <!-- Info Grid -->
+          <div class="grid grid-cols-2 gap-4 mb-4 text-sm">
+            <div>
+              <p class="text-gray-600">Anfitrión</p>
+              <p class="font-semibold text-gray-900">{{ session.createdBy || 'N/A' }}</p>
+            </div>
+            <div>
+              <p class="text-gray-600">Participantes</p>
+              <p class="font-semibold text-gray-900">
+                {{ session.participants || 0 }}
+              </p>
+            </div>
+            <div>
+              <p class="text-gray-600">Duración</p>
+              <p class="font-semibold text-gray-900">{{ session.duration || '60' }} min</p>
+            </div>
+            <div>
+              <p class="text-gray-600">Inicia en</p>
+              <p class="font-semibold text-gray-900">10 min</p>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex gap-2">
+            <button
+              (click)="viewSession(session.id)"
+              class="flex-1 px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium rounded-md transition-colors"
+            >
+              Ver
+            </button>
+            <button
+              (click)="joinSession(session.id)"
+              *ngIf="!isParticipant(session.id)"
+              class="flex-1 px-3 py-2 text-sm bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-md transition-colors"
+            >
+              Unirse
+            </button>
+            <button
+              (click)="leaveSession(session.id)"
+              *ngIf="isParticipant(session.id)"
+              class="flex-1 px-3 py-2 text-sm bg-red-600 hover:bg-red-700 text-white font-medium rounded-md transition-colors"
+            >
+              Abandonar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div
+      *ngIf="!loading && sessions.length === 0"
+      class="text-center py-12 bg-white rounded-lg border border-gray-200"
+    >
+      <p class="text-gray-600 mb-4">No hay sesiones disponibles</p>
+      <button
+        (click)="goToCreate()"
+        class="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-md transition-colors"
+      >
+        Crear una sesión
+      </button>
+    </div>
+  </main>
+</div>

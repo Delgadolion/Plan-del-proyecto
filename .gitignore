@@ -1,0 +1,11 @@
+# Angular
+node_modules/
+.angular/
+dist/
+
+# Logs
+npm-debug.log*
+yarn-error.log*
+
+# Env
+.env

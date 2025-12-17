@@ -1,0 +1,170 @@
+<div class="min-h-screen bg-background flex flex-col">
+  <app-header></app-header>
+
+  <main class="flex-1 container px-4 py-8 max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-foreground mb-2">Configuración</h1>
+      <p class="text-muted-foreground">Administra tu cuenta y preferencias</p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex gap-2 mb-6 border-b border-border">
+      <button
+        (click)="changeTab('account')"
+        [class.border-b-2]="activeTab === 'account'"
+        [class.border-primary]="activeTab === 'account'"
+        [class.text-primary]="activeTab === 'account'"
+        [class.text-muted-foreground]="activeTab !== 'account'"
+        class="px-4 py-2 font-medium transition-colors">
+        Cuenta
+      </button>
+      <button
+        (click)="changeTab('preferences')"
+        [class.border-b-2]="activeTab === 'preferences'"
+        [class.border-primary]="activeTab === 'preferences'"
+        [class.text-primary]="activeTab === 'preferences'"
+        [class.text-muted-foreground]="activeTab !== 'preferences'"
+        class="px-4 py-2 font-medium transition-colors">
+        Preferencias
+      </button>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="bg-card border border-border rounded-lg p-6">
+      <!-- Account Tab -->
+      <div *ngIf="activeTab === 'account'" class="space-y-6">
+        <h2 class="text-xl font-bold text-foreground">Configuración de Cuenta</h2>
+        
+        <form [formGroup]="accountForm" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-foreground mb-2">Correo Electrónico</label>
+            <input 
+              type="email" 
+              formControlName="email" 
+              class="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-foreground mb-2">Nombre Completo</label>
+            <input 
+              type="text" 
+              formControlName="nombre" 
+              class="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-foreground mb-2">Nombre de Usuario</label>
+            <input 
+              type="text" 
+              formControlName="username" 
+              class="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-foreground mb-2">Biografía</label>
+            <textarea 
+              formControlName="bio" 
+              rows="3" 
+              class="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"></textarea>
+          </div>
+
+          <!-- Save message -->
+          <div *ngIf="saveMessage" [ngClass]="saveMessage.includes('✅') ? 'bg-green-500/10 text-green-700' : 'bg-red-500/10 text-red-700'" class="p-3 rounded text-sm">
+            {{ saveMessage }}
+          </div>
+
+          <button 
+            type="button" 
+            (click)="saveAccountSettings()"
+            [disabled]="isSaving || !accountForm.valid"
+            class="px-6 py-2 bg-primary text-primary-foreground hover:bg-primary/90 font-medium rounded-lg transition-colors disabled:opacity-50">
+            {{ isSaving ? 'Guardando...' : 'Guardar Cambios' }}
+          </button>
+        </form>
+      </div>
+
+      <!-- Preferences Tab -->
+      <div *ngIf="activeTab === 'preferences'" class="space-y-6">
+        <h2 class="text-xl font-bold text-foreground">Preferencias</h2>
+        
+        <form [formGroup]="preferencesForm" class="space-y-4">
+          <!-- Theme -->
+          <div>
+            <label class="block text-sm font-medium text-foreground mb-2">Tema</label>
+            <select 
+              formControlName="theme"
+              class="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50">
+              <option *ngFor="let theme of themes" [value]="theme.value">{{ theme.label }}</option>
+            </select>
+          </div>
+
+          <!-- Language -->
+          <div>
+            <label class="block text-sm font-medium text-foreground mb-2">Idioma</label>
+            <select 
+              formControlName="language"
+              class="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50">
+              <option *ngFor="let lang of languages" [value]="lang.code">{{ lang.label }}</option>
+            </select>
+          </div>
+
+          <!-- Notifications -->
+          <div class="border-t border-border pt-4">
+            <h3 class="font-semibold text-foreground mb-3">Notificaciones</h3>
+            
+            <div class="space-y-3">
+              <label class="flex items-center gap-3 cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  formControlName="emailNotifications"
+                  class="w-4 h-4 rounded border-border text-primary focus:ring-2 focus:ring-primary/50">
+                <div>
+                  <p class="text-sm font-medium text-foreground">Notificaciones por Email</p>
+                  <p class="text-xs text-muted-foreground">Recibe actualizaciones importantes por correo</p>
+                </div>
+              </label>
+
+              <label class="flex items-center gap-3 cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  formControlName="studyReminders"
+                  class="w-4 h-4 rounded border-border text-primary focus:ring-2 focus:ring-primary/50">
+                <div>
+                  <p class="text-sm font-medium text-foreground">Recordatorios de Estudio</p>
+                  <p class="text-xs text-muted-foreground">Recibe recordatorios para estudiar</p>
+                </div>
+              </label>
+
+              <label class="flex items-center gap-3 cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  formControlName="soundNotifications"
+                  class="w-4 h-4 rounded border-border text-primary focus:ring-2 focus:ring-primary/50">
+                <div>
+                  <p class="text-sm font-medium text-foreground">Notificaciones de Sonido</p>
+                  <p class="text-xs text-muted-foreground">Sonidos para notificaciones</p>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Save message -->
+          <div *ngIf="saveMessage" [ngClass]="saveMessage.includes('✅') ? 'bg-green-500/10 text-green-700' : 'bg-red-500/10 text-red-700'" class="p-3 rounded text-sm">
+            {{ saveMessage }}
+          </div>
+
+          <button 
+            type="button" 
+            (click)="savePreferences()"
+            [disabled]="isSaving || !preferencesForm.valid"
+            class="px-6 py-2 bg-primary text-primary-foreground hover:bg-primary/90 font-medium rounded-lg transition-colors disabled:opacity-50">
+            {{ isSaving ? 'Guardando...' : 'Guardar Preferencias' }}
+          </button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <app-footer></app-footer>
+</div>

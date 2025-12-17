@@ -1,0 +1,340 @@
+<div class="min-h-screen flex flex-col bg-background">
+  <app-header></app-header>
+
+  <main class="flex-1 container px-4 py-6 max-w-7xl mx-auto w-full">
+    <!-- Session not found -->
+    <div *ngIf="!session" class="text-center py-12">
+      <p class="text-muted-foreground mb-4">Sesión no encontrada</p>
+    </div>
+
+    <!-- Session content -->
+    <div *ngIf="session" class="grid gap-6 lg:grid-cols-[1fr_380px]">
+      <!-- Main Content Area -->
+      <div class="space-y-6">
+        <!-- Session Info Card -->
+        <div class="bg-card border border-border rounded-lg p-6">
+          <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div class="flex-1">
+              <!-- Badges -->
+              <div class="flex items-center gap-2 mb-2">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary text-secondary-foreground">
+                  {{ session.tema || 'General' }}
+                </span>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary text-secondary-foreground">
+                  {{ session.estado === 'en-curso' ? 'En curso' : session.estado === 'planificado' ? 'Próxima' : 'Completada' }}
+                </span>
+              </div>
+              
+              <!-- Title -->
+              <h1 class="text-2xl font-bold text-foreground mb-2">{{ session.titulo }}</h1>
+              
+              <!-- Description -->
+              <p class="text-muted-foreground mb-4">
+                {{ session.descripcion || 'Sin descripción' }}
+              </p>
+
+              <!-- Stats -->
+              <div class="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                <div class="flex items-center gap-2">
+                  <span>👥</span>
+                  <span>{{ session.participants || 1 }} / {{ session.maxParticipantes || 5 }} participantes</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span>⏱️</span>
+                  <span>{{ calculateDuration(session) }} restantes</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Leave Session Button -->
+            <button 
+              (click)="showLeaveConfirm()"
+              class="gap-2 px-4 py-2 bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 font-medium transition-colors inline-flex items-center justify-center w-full sm:w-auto">
+              Salir de la sesión
+            </button>
+          </div>
+        </div>
+
+        <!-- Pomodoro Timer -->
+        <div class="bg-card border border-border rounded-lg p-8 overflow-hidden">
+          <div class="text-center space-y-6">
+            <!-- Timer Header -->
+            <div class="space-y-2">
+              <div class="flex items-center justify-center gap-2 mb-4">
+                <span class="text-lg font-medium text-muted-foreground">
+                  {{ isInPomodoro ? 'Pomodoro' : 'Descanso' }} {{ currentPomodoro }} de {{ session.numPomodoros || 4 }}
+                </span>
+              </div>
+
+            <!-- Timer Display -->
+              <div class="text-7xl font-bold font-mono text-primary transition-colors">
+                {{ formatTimeFromSeconds(timeLeft) }}
+              </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="h-2 bg-muted rounded-full overflow-hidden">
+              <div class="h-full bg-secondary transition-all duration-300" [style.width.%]="progressPercentage"></div>
+            </div>
+
+            <!-- Timer Controls -->
+            <div class="flex items-center justify-center gap-3">
+              <button 
+                (click)="toggleTimer()"
+                class="gap-2 px-8 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors inline-flex items-center font-medium min-w-[140px]"
+              >
+                <span>{{ isRunning ? '⏸️' : '▶️' }}</span>
+                {{ isRunning ? 'Pausar' : 'Iniciar' }}
+              </button>
+
+              <button 
+                (click)="skipPhase()"
+                class="gap-2 px-8 py-2 border border-border bg-transparent text-foreground rounded-md hover:bg-muted transition-colors inline-flex items-center"
+              >
+                <span>⏭️</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mobile Toggle Buttons -->
+        <div class="lg:hidden flex gap-3">
+          <button
+            (click)="showChat = true; showParticipants = false"
+            [class.bg-primary]="showChat"
+            [class.text-primary-foreground]="showChat"
+            [class.border]="!showChat"
+            [class.border-border]="!showChat"
+            class="flex-1 gap-2 py-2 rounded-md transition-colors inline-flex items-center justify-center font-medium"
+          >
+            <span>💬</span>
+            Chat
+          </button>
+          <button
+            (click)="showChat = false; showParticipants = true"
+            [class.bg-primary]="showParticipants"
+            [class.text-primary-foreground]="showParticipants"
+            [class.border]="!showParticipants"
+            [class.border-border]="!showParticipants"
+            class="flex-1 gap-2 py-2 rounded-md transition-colors inline-flex items-center justify-center font-medium"
+          >
+            <span>👥</span>
+            Participantes
+          </button>
+        </div>
+
+        <!-- Chat (Mobile) -->
+        <div *ngIf="showChat && isMobile" class="lg:hidden">
+          <div class="bg-card border border-border rounded-lg p-4 h-96 flex flex-col">
+            <!-- Chat Header -->
+            <div class="mb-4 pb-4 border-b border-border">
+              <h2 class="text-lg font-bold text-foreground">Chat de la sesión</h2>
+              <p class="text-xs text-muted-foreground">👥 {{ session?.participants || 1 }} participantes</p>
+            </div>
+
+            <!-- Messages -->
+            <div class="flex-1 overflow-y-auto mb-4 space-y-4">
+              <div *ngIf="messages.length === 0" class="text-sm text-muted-foreground text-center py-8">
+                No hay mensajes aún
+              </div>
+              
+              <div *ngFor="let msg of messages" [ngClass]="{'flex flex-row-reverse': msg.user === currentUser}">
+                <div [ngClass]="{'flex-col-reverse': msg.user === currentUser}" class="flex gap-3 w-full">
+                  <!-- Avatar (solo para otros usuarios) -->
+                  <div *ngIf="msg.user !== currentUser" class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                    {{ (msg.user || 'A')[0] }}
+                  </div>
+                  <div *ngIf="msg.user === currentUser" class="h-8 w-8 flex-shrink-0"></div>
+                  
+                  <!-- Message Bubble -->
+                  <div [ngClass]="{'ml-auto': msg.user === currentUser}" class="max-w-[70%]">
+                    <p class="text-xs font-semibold text-foreground mb-1">{{ msg.user }}</p>
+                    <div [ngClass]="{'bg-blue-500 text-white': msg.user === currentUser, 'bg-muted text-foreground': msg.user !== currentUser}" class="px-3 py-2 rounded-lg text-sm break-words">
+                      {{ msg.text }}
+                    </div>
+                    <p class="text-xs text-muted-foreground mt-1">{{ msg.timestamp | date:'HH:mm' }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Input -->
+            <div class="space-y-2 border-t border-border pt-4">
+              <div class="flex gap-2">
+                <button
+                  (click)="fileInputMobile.click()"
+                  class="p-2 hover:bg-muted rounded-md text-muted-foreground hover:text-foreground transition-colors"
+                  title="Adjuntar archivo"
+                >
+                  <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                  </svg>
+                </button>
+                <input
+                  type="text"
+                  placeholder="Escribe un mensaje..."
+                  [(ngModel)]="newMessage"
+                  (keyup.enter)="sendMessage()"
+                  class="flex-1 px-3 py-2 border border-border rounded-md bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                />
+                <button 
+                  (click)="sendMessage()"
+                  class="p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+                  title="Enviar mensaje"
+                >
+                  <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M16.6915026,12.4744748 L3.50612381,13.2599618 C3.19218622,13.2599618 3.03521743,13.4170592 3.03521743,13.5741566 L1.15159189,20.0151496 C0.8376543,20.8006365 0.99,21.89 1.77946707,22.52 C2.41,22.99 3.50612381,23.1 4.13399899,22.8429026 L21.714504,14.0454487 C22.6563168,13.5741566 23.1272231,12.6315722 22.9702544,11.6889879 C22.9702544,11.6889879 22.9702544,11.3050154 22.9702544,11 C22.9702544,10.6949846 22.9702544,10.3110121 22.9702544,10.3110121 C23.1272231,9.36842788 22.6563168,8.42584344 21.714504,7.95454487 L4.13399899,0 C3.34915502,0 2.40734225,0.110121107 1.77946707,0.8006365 C0.994623095,1.4914213 0.837654299,2.58 1.15159189,3.3654869 L3.03521743,9.80646586 C3.03521743,9.96356522 3.19218622,10.1206626 3.50612381,10.1206626 L16.6915026,10.9061495 C16.6915026,10.9061495 17.1624089,10.9061495 17.1624089,10.9061495 L17.1624089,10.9061495 C17.6333152,10.9061495 18.1042215,11.2900221 18.1042215,11.7612987 C18.1042215,12.2325753 17.6333152,12.4744748 17.1624089,12.4744748 C16.6915026,12.4744748 16.6915026,12.4744748 16.6915026,12.4744748 Z"/>
+                  </svg>
+                </button>
+              </div>
+              <input
+                type="file"
+                #fileInputMobile
+                (change)="onFileSelected($event)"
+                class="hidden"
+                accept="image/*,.pdf,.doc,.docx,.txt"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Participants (Mobile) -->
+        <div *ngIf="showParticipants && (isMobile || true)" class="lg:hidden">
+          <div class="bg-card border border-border rounded-lg p-6">
+            <h2 class="text-xl font-bold text-foreground mb-4">Participantes</h2>
+            <div class="space-y-3">
+              <!-- Creator -->
+              <div class="flex items-center gap-2">
+                <div class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-bold">
+                  {{ (session.creador?.name || 'A')[0] }}
+                </div>
+                <div class="flex-1">
+                  <p class="text-sm font-medium text-foreground">{{ session.creador?.name || 'Anónimo' }}</p>
+                  <p class="text-xs text-muted-foreground">Anfitrión</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar (Desktop) -->
+      <div class="hidden lg:flex lg:flex-col gap-6">
+        <!-- Chat -->
+        <div class="bg-card border border-border rounded-lg p-6 flex flex-col h-96">
+          <!-- Chat Header -->
+          <div class="mb-4 pb-4 border-b border-border">
+            <h2 class="text-lg font-bold text-foreground">Chat de la sesión</h2>
+            <p class="text-xs text-muted-foreground">👥 {{ session?.participants || 1 }} participantes</p>
+          </div>
+
+          <!-- Messages -->
+          <div class="flex-1 overflow-y-auto mb-4 space-y-3">
+            <div *ngIf="messages.length === 0" class="text-sm text-muted-foreground text-center py-12">
+              No hay mensajes aún
+            </div>
+            <div *ngFor="let msg of messages" [ngClass]="{'flex flex-row-reverse gap-3': msg.user === currentUser, 'flex gap-3': msg.user !== currentUser}">
+              <!-- Avatar (solo para otros usuarios) -->
+              <div *ngIf="msg.user !== currentUser" class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                {{ (msg.user || 'A')[0] }}
+              </div>
+              <div *ngIf="msg.user === currentUser" class="h-8 w-8 flex-shrink-0"></div>
+              <div [ngClass]="{'max-w-xs': true}">
+                <p class="text-xs font-semibold text-foreground" *ngIf="msg.user !== currentUser">{{ msg.user }}</p>
+                <div [ngClass]="{'bg-blue-500 text-white': msg.user === currentUser, 'bg-muted text-foreground': msg.user !== currentUser}" 
+                     class="px-3 py-2 rounded-lg text-sm">
+                  {{ msg.text }}
+                </div>
+                <p class="text-xs text-muted-foreground mt-1">{{ msg.timestamp | date:'HH:mm' }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chat Input -->
+          <div class="border-t border-border pt-4">
+            <div class="flex gap-2 items-center">
+              <button 
+                (click)="fileInputDesktop.click()"
+                class="p-2 hover:bg-muted rounded transition-colors text-muted-foreground hover:text-foreground"
+                title="Adjuntar archivo"
+              >
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                </svg>
+              </button>
+              <input
+                type="text"
+                placeholder="Escribe un mensaje..."
+                [(ngModel)]="newMessage"
+                (keyup.enter)="sendMessage()"
+                class="flex-1 px-3 py-2 border border-border rounded-md bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              />
+              <button 
+                (click)="sendMessage()"
+                class="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                title="Enviar mensaje"
+              >
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M16.6915026,12.4744748 L3.50612381,13.2599618 C3.19218622,13.2599618 3.03521743,13.4170592 3.03521743,13.5741566 L1.15159189,20.0151496 C0.8376543,20.8006365 0.99,21.89 1.77946707,22.52 C2.41,22.99 3.50612381,23.1 4.13399899,22.8429026 L21.714504,14.0454487 C22.6563168,13.5741566 23.1272231,12.6315722 22.9702544,11.6889879 C22.9702544,11.6889879 22.9702544,11.3050154 22.9702544,11 C22.9702544,10.6949846 22.9702544,10.3110121 22.9702544,10.3110121 C23.1272231,9.36842788 22.6563168,8.42584344 21.714504,7.95454487 L4.13399899,0 C3.34915502,0 2.40734225,0.110121107 1.77946707,0.8006365 C0.994623095,1.4914213 0.837654299,2.58 1.15159189,3.3654869 L3.03521743,9.80646586 C3.03521743,9.96356522 3.19218622,10.1206626 3.50612381,10.1206626 L16.6915026,10.9061495 C16.6915026,10.9061495 17.1624089,10.9061495 17.1624089,10.9061495 L17.1624089,10.9061495 C17.6333152,10.9061495 18.1042215,11.2900221 18.1042215,11.7612987 C18.1042215,12.2325753 17.6333152,12.4744748 17.1624089,12.4744748 C16.6915026,12.4744748 16.6915026,12.4744748 16.6915026,12.4744748 Z"/>
+                </svg>
+              </button>
+            </div>
+            <input
+              type="file"
+              #fileInputDesktop
+              (change)="onFileSelected($event)"
+              class="hidden"
+              accept="image/*,.pdf,.doc,.docx,.txt"
+            />
+          </div>
+        </div>
+
+        <!-- Participants -->
+        <div class="bg-card border border-border rounded-lg p-6">
+          <h2 class="text-xl font-bold text-foreground mb-4">Participantes</h2>
+          <div class="space-y-3">
+            <!-- Creator -->
+            <div class="flex items-center gap-2">
+              <div class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-bold">
+                {{ (session.creador?.name || 'A')[0] }}
+              </div>
+              <div class="flex-1">
+                <p class="text-sm font-medium text-foreground">{{ session.creador?.name || 'Anónimo' }}</p>
+                <p class="text-xs text-muted-foreground">Anfitrión</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Confirmation Dialog -->
+  <div *ngIf="showConfirmDialog" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div class="bg-card border border-border rounded-lg p-6 max-w-sm shadow-lg">
+      <h2 class="text-lg font-bold text-foreground mb-2">¿Salir de la sesión?</h2>
+      <p class="text-sm text-muted-foreground mb-6">
+        ¿Estás seguro de que deseas salir de esta sesión? No podrás volver a acceder a ella.
+      </p>
+      <div class="flex gap-3 justify-end">
+        <button 
+          (click)="cancelLeave()"
+          class="px-4 py-2 border border-border rounded-md hover:bg-muted transition-colors font-medium">
+          Cancelar
+        </button>
+        <button 
+          (click)="leaveSession()"
+          class="px-4 py-2 bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 transition-colors font-medium">
+          Salir de la sesión
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Session Ended Banner -->
+  <div *ngIf="sessionEnded" class="fixed top-0 left-0 right-0 bg-green-500 text-white p-4 text-center z-50">
+    <p class="font-medium">La sesión ha finalizado</p>
+  </div>
+
+  <app-footer></app-footer>
+</div>
