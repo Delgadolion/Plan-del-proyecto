@@ -1,23 +1,15 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "dist/frontend/index.html",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "dist/frontend/**",
-      "use": "@vercel/static"
-    }
-  ],
+  "buildCommand": "ng build --configuration=production",
+  "outputDirectory": "dist/estudiemos-frontend",
+  "env": {
+    "ANGULAR_ENVIRONMENT": "production"
+  },
   "routes": [
     {
-      "src": "^/(?!.*\\.).*$",
-      "dest": "/index.html"
-    },
-    {
       "src": "/(.*)",
-      "dest": "/dist/frontend/$1"
+      "dest": "/index.html",
+      "status": 200
     }
   ]
 }
