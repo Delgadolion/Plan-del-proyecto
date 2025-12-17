@@ -46,35 +46,27 @@ dotenv.config();
 // ======================================
 const app = express();
 
-// CORS Configuration - PRIMERO: Preflight handler
-app.options('*', cors({
-  origin: 'https://angulardeploy-three.vercel.app',
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+// 1. HELMET primero - con configuración para permitir CORS
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  crossOriginOpenerPolicy: { policy: "unsafe-none" }
 }));
 
-// CORS middleware para todas las peticiones
+// 2. CORS después
 app.use(cors({
-  origin: 'https://angulardeploy-three.vercel.app',
+  origin: [
+    'https://angulardeploy-three.vercel.app',
+    'http://localhost:4200'
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  optionsSuccessStatus: 200
 }));
 
-app.use(helmet());
+// 3. Express middlewares
 app.use(express.json());
-
-const PORT = process.env.PORT || 4000;
-
-const httpServer = createServer(app);
-const io = new Server(httpServer, {
-  cors: {
-    origin: 'https://angulardeploy-three.vercel.app',
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    credentials: true
-  }
-});
+app.use(express.urlencoded({ extended: true }));
 // ======================================
 // INICIALIZAR BASE DE DATOS
 // ======================================
