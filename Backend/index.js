@@ -46,18 +46,20 @@ dotenv.config();
 // ======================================
 const app = express();
 
-// CORS Configuration - Permitir Vercel
-app.use(cors({
+// CORS Configuration - PRIMERO: Preflight handler
+app.options('*', cors({
   origin: 'https://angulardeploy-three.vercel.app',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
-// Preflight handler
-app.options('*', cors({
+// CORS middleware para todas las peticiones
+app.use(cors({
   origin: 'https://angulardeploy-three.vercel.app',
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
 app.use(helmet());
