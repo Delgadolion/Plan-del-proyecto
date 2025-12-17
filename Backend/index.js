@@ -46,27 +46,18 @@ dotenv.config();
 // ======================================
 const app = express();
 
-// CORS Configuration
-const allowedOrigins = [
-  'http://localhost:4200',                      // Local
-  'http://127.0.0.1:4200',                     // Local alternativo
-  'https://angulardeploy-three.vercel.app'     // Frontend en Vercel
-];
-
+// CORS Configuration - Permitir Vercel
 app.use(cors({
-  origin: function(origin, callback){
-    // Permite solicitudes sin origin (Postman, mobile)
-    if(!origin) return callback(null, true);
-    if(allowedOrigins.includes(origin)){
-      return callback(null, true);
-    } else {
-      console.warn(`⚠️  CORS blocked origin: ${origin}`);
-      return callback(new Error('Not allowed by CORS'));
-    }
-  },
-  methods: ['GET','POST','PUT','DELETE','PATCH','OPTIONS'],
+  origin: 'https://angulardeploy-three.vercel.app',
   credentials: true,
-  allowedHeaders: ['Content-Type','Authorization']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
+
+// Preflight handler
+app.options('*', cors({
+  origin: 'https://angulardeploy-three.vercel.app',
+  credentials: true
 }));
 
 app.use(helmet());
@@ -77,7 +68,7 @@ const PORT = process.env.PORT || 4000;
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: true,
+    origin: 'https://angulardeploy-three.vercel.app',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
   }
