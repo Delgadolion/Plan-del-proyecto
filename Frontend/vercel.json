@@ -1,47 +1,11 @@
 {
   "version": 2,
-  "buildCommand": "ng build --configuration=production",
+  "buildCommand": "ng build --configuration production",
   "outputDirectory": "dist/estudiemos-frontend",
-  "env": {
-    "ANGULAR_ENVIRONMENT": "production"
-  },
-  "routes": [
+  "rewrites": [
     {
-      "src": "/assets/(.*)",
-      "dest": "/assets/$1",
-      "continue": true
-    },
-    {
-      "src": "/index.html",
-      "dest": "/index.html"
-    },
-    {
-      "src": "/styles\\.[a-z0-9]+\\.css",
-      "dest": "/styles.$1.css"
-    },
-    {
-      "src": "/main\\.[a-z0-9]+\\.js",
-      "dest": "/main.$1.js"
-    },
-    {
-      "src": "/vendor\\.[a-z0-9]+\\.js",
-      "dest": "/vendor.$1.js"
-    },
-    {
-      "src": "/(.*\\.js)",
-      "dest": "/$1"
-    },
-    {
-      "src": "/(.*\\.css)",
-      "dest": "/$1"
-    },
-    {
-      "src": "/(.*\\.ico)",
-      "dest": "/$1"
-    },
-    {
-      "src": "^/(?!.*\\.).*$",
-      "dest": "/index.html"
+      "source": "/((?!.*\\.).*)",
+      "destination": "/index.html"
     }
   ]
 }
