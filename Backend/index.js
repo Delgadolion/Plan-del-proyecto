@@ -8,6 +8,9 @@ import dotenv from "dotenv";
 import bcrypt from "bcrypt";
 import nodemailer from "nodemailer";
 import { v4 as uuidv4 } from "uuid";
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import path from 'path';
 import { createServer } from "http";
 import { Server } from "socket.io";
 
@@ -334,9 +337,28 @@ try {
   throw err;
 }
 
-// Manejo de rutas no encontradas
+// ======================================
+// SERVIR FRONTEND ESTÁTICO (Vercel o Vercel preview)
+// ======================================
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Servir archivos estáticos del frontend (si existen)
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Manejo de rutas no encontradas - Redirigir a index.html para SPA (Angular)
 app.use((req, res) => {
-  res.status(404).json({ error: "Ruta no encontrada" });
+  // Si la ruta no empieza con /api, asumir que es una ruta Angular y servir index.html
+  if (!req.path.startsWith('/api')) {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'), (err) => {
+      if (err) {
+        // Si no existe index.html, responder con error de API
+        res.status(404).json({ error: "Ruta no encontrada" });
+      }
+    });
+  } else {
+    res.status(404).json({ error: "Ruta no encontrada" });
+  }
 });
 
 // ======================================
