@@ -46,10 +46,7 @@ dotenv.config();
 // ======================================
 const app = express();
 
-
 // CORS Configuration
-import cors from 'cors';
-
 const allowedOrigins = [
   'http://localhost:4200',                      // Local
   'http://127.0.0.1:4200',                     // Local alternativo
