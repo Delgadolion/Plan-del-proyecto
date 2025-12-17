@@ -43,9 +43,37 @@ dotenv.config();
 // ======================================
 const app = express();
 
-// CORS - Permitir peticiones desde cualquier origen (para pruebas)
-// En producción, puedes restringir a orígenes específicos
-app.use(cors({ origin: '*' }));
+// CORS Configuration - Permitir peticiones según ambiente
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Lista de orígenes permitidos (desarrollo y producción)
+    const allowedOrigins = [
+      'http://localhost:4200',                      // Desarrollo local
+      'http://127.0.0.1:4200',                     // Localhost alternativo
+      'https://angulardeploy-three.vercel.app',    // Frontend en Vercel (ACTUALIZA ESTO CON TU URL)
+      process.env.CLIENT_URL,                       // URL desde .env
+    ];
+
+    // Si la solicitud no tiene origin (como en mobile o Postman), permitir
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    // Verificar si el origin está permitido
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.warn(`⚠️  CORS blocked origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  credentials: true, // Permitir cookies y credenciales
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
 
 app.use(helmet());
 app.use(express.json());
@@ -54,11 +82,8 @@ const PORT = process.env.PORT || 4000;
 
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
-  cors: {
-    origin: '*' // Permitir conexiones WebSocket desde cualquier origen
-  }
-    credentials: true
-  }
+  cors: corsOptions, // Usar la misma configuración de CORS para Socket.io
+  credentials: true
 });
 // ======================================
 // INICIALIZAR BASE DE DATOS
