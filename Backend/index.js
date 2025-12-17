@@ -46,13 +46,30 @@ dotenv.config();
 // ======================================
 const app = express();
 
-// CORS - Abierto completamente para login en producción
-app.options('*', cors());
+
+// CORS Configuration
+import cors from 'cors';
+
+const allowedOrigins = [
+  'http://localhost:4200',                      // Local
+  'http://127.0.0.1:4200',                     // Local alternativo
+  'https://angulardeploy-three.vercel.app'     // Frontend en Vercel
+];
+
 app.use(cors({
-  origin: true,
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  origin: function(origin, callback){
+    // Permite solicitudes sin origin (Postman, mobile)
+    if(!origin) return callback(null, true);
+    if(allowedOrigins.includes(origin)){
+      return callback(null, true);
+    } else {
+      console.warn(`⚠️  CORS blocked origin: ${origin}`);
+      return callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET','POST','PUT','DELETE','PATCH','OPTIONS'],
   credentials: true,
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type','Authorization']
 }));
 
 app.use(helmet());
