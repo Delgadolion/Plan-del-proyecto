@@ -46,17 +46,16 @@ dotenv.config();
 // ======================================
 const app = express();
 
-// CORS Configuration - Permitir TODOS los orígenes por ahora (desarrollo/producción)
+// CORS - Abierto completamente para login en producción
+app.options('*', cors());
 app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  credentials: false,
+  origin: true,
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-app.use(helmet({
-  crossOriginResourcePolicy: false,
-}));
+app.use(helmet());
 app.use(express.json());
 
 const PORT = process.env.PORT || 4000;
@@ -64,10 +63,10 @@ const PORT = process.env.PORT || 4000;
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: '*',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  },
-  credentials: false
+    origin: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true
+  }
 });
 // ======================================
 // INICIALIZAR BASE DE DATOS
