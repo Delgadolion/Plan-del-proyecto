@@ -32,13 +32,14 @@
           "configurations": {
             "production": {
               "budgets": [
-                {
-                  "type": "bundle",
-                  "name": "bundle",
-                  "maximumWarningSize": "2mb",
-                  "maximumErrorSize": "5mb"
-                }
-              ],
+                  {
+                    "type": "bundle",
+                    "name": "bundle",
+                    "maximumWarning": "2mb",
+                    "maximumError": "5mb"
+                  }
+                ],
+
               "outputHashing": "all"
             },
             "development": {
