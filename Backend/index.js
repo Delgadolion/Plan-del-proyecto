@@ -67,6 +67,24 @@ app.use(cors({
 // 3. Express middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// 4. Configuración del puerto
+const PORT = process.env.PORT || 4000;
+
+// 5. Crear servidor HTTP y Socket.IO
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  cors: {
+    origin: [
+      'https://angulardeploy-three.vercel.app',
+      'http://localhost:4200'
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true
+  },
+  transports: ['websocket', 'polling']
+});
+
 // ======================================
 // INICIALIZAR BASE DE DATOS
 // ======================================
@@ -96,7 +114,9 @@ async function initDB() {
   }
 }
 
-// Manejo de eventos de sala, chat y timer
+// ======================================
+// SOCKET.IO - Manejo de eventos
+// ======================================
 io.on("connection", (socket) => {
   console.log(`✅ Cliente conectado: ${socket.id}`);
 
